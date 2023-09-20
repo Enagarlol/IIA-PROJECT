@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Students {
+  id_student Int @id @unique @default(autoincrement())
+  student_enrollment String @unique
+  name String @db.VarChar(100)
+  last_name String @db.VarChar(100)
+  age Int
+  phone String @db.VarChar(100) @unique
+  birthday String
+  email String @unique @db.VarChar(100) 
+  password String 
+  picture String  @db.VarChar(255)
+  status Boolean @default(true)
+  session Int @default(0)
+  list_Course List_Course[]
+  Payment_method Payment_method[]
+}
+
+model Roles {
+  id_roles Int @id @unique @default(autoincrement())
+  name String @db.VarChar(100)
+  status Boolean @default(true)
+  employess Employees[]
+}
+
+model Employees {
+  id_employees Int @id @unique @default(autoincrement())
+  name String @db.VarChar(100)
+  job_position String @db.VarChar(100)
+  email String @unique @db.VarChar(100) 
+  password String 
+  status Boolean @default(true)
+  roles Roles @relation(fields: [id_roles], references: [id_roles])
+  id_roles Int 
+  course Course[]
+}
+
+model Course {
+  id_course Int @id @unique @default(autoincrement())
+  name String @db.VarChar(100)
+  status Boolean @default(true)  
+  spaces Int 
+  occupied_spaces Int
+  employees Employees @relation(fields: [id_employees], references: [id_employees])
+  id_employees   Int
+  course_schedule Course_schedule[]
+  list_Course List_Course[]
+  payment_history Payment_history[]
+}
+
+model Course_schedule {
+  id_schedule Int @id @unique @default(autoincrement())
+  time_entry DateTime @db.Time()
+  time_departure DateTime @db.Time()
+  date String
+  status String @db.VarChar(100)
+  classroom Classroom @relation(fields: [id_classroom], references: [id_classroom])
+  id_classroom Int
+  course Course @relation(fields: [id_course], references: [id_course])
+  id_course Int
+}
+
+model Classroom {
+  id_classroom Int @id @default(autoincrement()) 
+  number Int
+  status String @db.VarChar(100)
+  course_schedule Course_schedule[]
+}    
+
+model List_Course {
+  id_list Int @id @default(autoincrement())
+  assistance Boolean
+  students Students @relation(fields: [id_student], references: [id_student])
+  id_student Int
+  course Course @relation(fields: [id_course], references: [id_course])
+  id_course Int
+}
+
+model Payment_method {
+  id_method Int @id @default(autoincrement()) 
+  name String @db.VarChar(100)
+  card_number String @db.VarChar(100)
+  valid_thru String @db.VarChar(100)
+  name_bank String @db.VarChar(100)
+  type_card String @db.VarChar(100)
+  type_account String @db.VarChar(100)
+  status String @db.VarChar(100)
+  students Students @relation(fields: [id_student], references: [id_student])  
+  id_student Int
+  payment_history Payment_history[]
+}
+
+model Payment_history {
+  id_history Int @id @default(autoincrement()) 
+  date_time DateTime 
+  amount Float
+  concept String @db.VarChar(100)
+  folio String @db.VarChar(100)
+  status String @db.VarChar(100)
+  course Course @relation(fields: [id_course], references: [id_course])
+  id_course Int
+  payment_method Payment_method @relation(fields: [id_method], references: [id_method])
+  id_method Int
+}
