@@ -55,7 +55,9 @@ router.post('/student/new', validateStudent, async (req, res) => {
 
 // Ruta para iniciar sesión
 router.post('/student/login',  async (req, res) => {
+
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
@@ -75,18 +77,23 @@ router.post('/student/login',  async (req, res) => {
 
     // Genera y retorna el token JWT
     const token = jwt.sign({ userId: user.id_student }, secretKey, { expiresIn: '1h' });
+
     res.status(200).json({ message: 'Inicio de sesión exitoso', token: token });
+
   } catch (error) {
+
     console.error('Error iniciando sesión:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
+
   }
 });
 
 // Rutas protegidas con token JWT
-router.get('/student/profile', verificarToken, async (req, res) => {
+router.post('/student/profile', verificarToken, async (req, res) => {
   // El middleware verificarToken verifica la validez del token y decodifica los datos en req.userData
   // Puedes acceder a req.userData para obtener información del usuario
   res.status(200).json({ message: 'Acceso autorizado.', user: req.userData });
+
 });
 
 export default router;
