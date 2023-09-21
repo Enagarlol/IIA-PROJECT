@@ -2,6 +2,7 @@ import express from 'express'
 import studentRoutes from './src/routes/studentRoutes.js'
 import verificarToken from './src/routes/verificarToken.js'
 import classroomRoutes from './src/routes/classroom.routes.js'
+import rolesRoutes from './src/routes/roles.routes.js'
 
 const app = express()
 const port = 8080 || process.env.PORT
@@ -19,6 +20,7 @@ app.use('/api', studentRoutes);
 app.use('/api', verificarToken);
 
 app.use('/api', classroomRoutes)
+app.use('/api', rolesRoutes)
 
 app.listen(port, () => {
   console.log(`Server ready at: http://localhost:${port}`)
