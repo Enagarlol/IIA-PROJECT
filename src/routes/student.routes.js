@@ -1,9 +1,8 @@
-import { Router } from 'express'
-import { prisma } from '../config/db.js'
-import { body, validationResult } from 'express-validator';
+import { Router } from 'express';
+import { prisma } from '../config/db.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import * as studentValidation from '../validation/student.validation.js';
+import * as validation from '../validation/student.validation.js';
 
 const router = Router()
 
@@ -13,15 +12,15 @@ const secretKey = 'registro_user'; // Reemplaza esto con tu clave secreta real
 router.get('/students/list', async (req, res) => {
 
   try {
-    const students_list = await prisma.students.findMany();
+    const searchingStudent = await prisma.students.findMany();
 
-    if (students_list.length === 0)
+    if (searchingStudent.length === 0)
       return res.status(404).json({ error: 'No hay estudiantes registrados.' });
 
-    res.status(201).json({ classrooms: students_list });
+    res.status(201).json({ Student: searchingStudent });
   } catch (error) {
-    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud List Classroom' });
-    console.error({ error: 'Error interno del servidor al procesar la solicitud List Classroom', details: error.message });
+    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud List Student' });
+    console.error({ error: 'Error interno del servidor al procesar la solicitud List student', details: error.message });
     await prisma.$disconnect();
     console.error('Desconexion de prisma Exitosa');
     process.exit(1);
@@ -32,22 +31,22 @@ router.get('/students/list', async (req, res) => {
 });
 
 // Obtener alumno por ID
-router.get('/student/view/:id', studentValidation.validateViewStudent, async (req, res) => {
+router.get('/student/view/:id', validation.validateViewStudent, async (req, res) => {
 
   if (!validationResult(req).isEmpty())
     return res.status(400).json({ errors: validationResult(req).array() });
 
   try {
-    const student_view = await prisma.students.findUnique({
+    const searchingStudent = await prisma.students.findUnique({
       where: {
         id_student: Number(req.params.id),
       }
     });
 
-    if (!student_view)
+    if (!searchingStudent)
       return res.status(404).json({ error: 'Estudiante no encontrado.' });
 
-    res.status(201).json({ Estudiante: student_view });
+    res.status(201).json({ Student: searchingStudent });
   } catch (error) {
     res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud View Student' });
     console.error({ error: 'Error interno del servidor al procesar la solicitud View Student', details: error.message });
@@ -62,23 +61,29 @@ router.get('/student/view/:id', studentValidation.validateViewStudent, async (re
 
 
 // Ruta para crear un nuevo estudiante con contraseña segura
-router.post('/student/new', studentValidation.validateStudent, async (req, res) => {
+router.post('/student/new', validation.validateCreateStudent, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
     // Hashea la contraseña antes de almacenarla
     const hashedPassword = await bcrypt.hash(req.body.password, 10); // El segundo argumento es el número de rondas de sal
-    const new_student = await prisma.students.create({
+    const creatingNewStudent = await prisma.students.create({
       data: {
         ...req.body,
         password: hashedPassword, // Almacena el hash en lugar de la contraseña en texto plano
       },
     });
-    res.status(201).json({ message: 'Nuevo estudiante creado', id: new_student.id_student });
+    res.status(201).json({ message: 'Nuevo estudiante creado', id: creatingNewStudent.id_student });
   } catch (error) {
-    console.error('Error creando el estudiante:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud creating Student' });
+    console.error({ error: 'Error interno del servidor al procesar la solicitud creating student', details: error.message });
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
   }
 });
 
@@ -90,35 +95,38 @@ router.post('/student/login', async (req, res) => {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const { email, password } = req.body;
-    const user = await prisma.students.findUnique({
+    const searchingStudent = await prisma.students.findUnique({
       where: {
-        email: email,
+        email: req.body.email,
       },
     });
 
-    if (!user) return res.status(401).json({ message: 'Correo electrónico incorrecto.' });
+    if (!searchingStudent) return res.status(401).json({ message: 'Correo electrónico incorrecto.' });
 
     // Compara la contraseña almacenada (hash) con la contraseña proporcionada
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(req.body.password, searchingStudent.password);
 
     if (!passwordMatch) return res.status(401).json({ message: 'Credenciales incorrectas.' });
 
     // Genera y retorna el token JWT
-    const token = jwt.sign({ userId: user.id_student }, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: searchingStudent.id_student }, secretKey, { expiresIn: '1h' });
 
     res.status(200).json({ message: 'Inicio de sesión exitoso', token: token });
 
   } catch (error) {
-
-    console.error('Error iniciando sesión:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-
+    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud login Student' });
+    console.error({ error: 'Error interno del servidor al procesar la solicitud login student', details: error.message });
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
   }
 });
 
 // Actualizar datos del alumno por ID
-router.put('/student/update/:id', studentValidation.validateUpdateStudent, async (req, res) => {
+router.put('/student/update/:id', validation.validateUpdateStudent, async (req, res) => {
   if (!validationResult(req).isEmpty())
     return res.status(400).json({ errors: validationResult(req).array() });
 
@@ -130,7 +138,7 @@ router.put('/student/update/:id', studentValidation.validateUpdateStudent, async
     });
 
     if (!searchingStudent)
-      return res.status(404).json({ error: 'Salon de clases no encontrado.' });
+      return res.status(404).json({ error: 'Estudiante no encontrado.' });
 
     const updatingStudent = await prisma.students.update({
       where: {
@@ -142,10 +150,10 @@ router.put('/student/update/:id', studentValidation.validateUpdateStudent, async
         last_name: req.body.last_name,
         age: req.body.age,
         phone: req.body.phone,
-        birthday: req.body.birthday, 
+        birthday: req.body.birthday,
         email: req.body.email,
         password: req.body.password,
-        picture: req.body.picture,  
+        picture: req.body.picture,
         session: req.body.session,
       },
     });
@@ -163,40 +171,40 @@ router.put('/student/update/:id', studentValidation.validateUpdateStudent, async
   }
 });
 
-router.patch('/student/status/:id', studentValidation.validateStatusStudent, async (req, res) => {
-  
+router.patch('/student/status/:id', validation.validateStatusStudent, async (req, res) => {
+
   if (!validationResult(req).isEmpty())
-      return res.status(400).json({ errors: validationResult(req).array() });
+    return res.status(400).json({ errors: validationResult(req).array() });
 
   try {
-      const searchingStudent = await prisma.students.findUnique({
-          where: {
-              id_student: Number(req.params.id),
-          }
-      });
+    const searchingStudent = await prisma.students.findUnique({
+      where: {
+        id_student: Number(req.params.id),
+      }
+    });
 
-      if (!searchingStudent)
+    if (!searchingStudent)
       return res.status(404).json({ error: 'Salon de clases no encontrado.' });
 
-      const updatingStudentStatus = await prisma.students.update({
-          where: {
-              id_student: Number(req.params.id),
-          },
-          data: {
-              status: req.body.status,
-          },
-      });
+    const updatingStudentStatus = await prisma.students.update({
+      where: {
+        id_student: Number(req.params.id),
+      },
+      data: {
+        status: req.body.status,
+      },
+    });
 
-      res.status(201).json({classroom: updatingStudentStatus });
+    res.status(201).json({ classroom: updatingStudentStatus });
   } catch (error) {
-      res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud Status Classroom' });
-      console.error({ error: 'Error interno del servidor al procesar la solicitud Status Classroom', details: error.message });
-      await prisma.$disconnect();
-      console.error('Desconexion de prisma Exitosa');
-      process.exit(1);
+    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud Status Classroom' });
+    console.error({ error: 'Error interno del servidor al procesar la solicitud Status Classroom', details: error.message });
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
+    process.exit(1);
   } finally {
-      await prisma.$disconnect();
-      console.error('Desconexion de prisma Exitosa');
+    await prisma.$disconnect();
+    console.error('Desconexion de prisma Exitosa');
   }
 });
 
