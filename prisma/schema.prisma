@@ -107,7 +107,7 @@ model Payment_method {
   name_bank String @db.VarChar(100)
   type_card String @db.VarChar(100)
   type_account String @db.VarChar(100)
-  status String @db.VarChar(100)
+  status String @db.VarChar(100) @default("Activa")
   students Students @relation(fields: [id_student], references: [id_student])  
   id_student Int
   payment_history Payment_history[]
