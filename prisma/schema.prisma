@@ -121,7 +121,7 @@ model Payment_history {
   amount Float
   concept String @db.VarChar(100)
   folio String @db.VarChar(100)
-  status String @db.VarChar(100)
+  status String @db.VarChar(100) @default("Activa")
   course Course @relation(fields: [id_course], references: [id_course])
   id_course Int
   payment_method Payment_method @relation(fields: [id_method], references: [id_method])
