@@ -1,33 +1,33 @@
 import { check } from 'express-validator';
 
 const validateCreateRole = [
-    check('name').notEmpty().withMessage('El campo nombre es obligatorio.'),
+    check('name').notEmpty().withMessage('Completa este campo.'),
+    check('status').isEmpty().withMessage('Este campo no deber ser enviado.')
 ];
 
 const validateViewRole = [
     check('id')
-    
-        .notEmpty().withMessage('El campo id es obligatorio.')
-        .isInt().withMessage('El campo id debe ser un numero entero.'),
+        .notEmpty().withMessage('Completa este campo.')
+        .isInt().withMessage('Completa utilizando solo numeros enteros.'),
 ];
 
 const validateUpdateRole = [
     check('id')
-        .notEmpty().withMessage('El campo id es obligatorio.')
-        .isInt().withMessage('El campo id debe ser un numero entero.'),
-    check('name').notEmpty().withMessage('El campo nombre es obligatorio.'),
+        .notEmpty().withMessage('Completa este campo.')
+        .isInt().withMessage('Completa utilizando solo numeros enteros.'),
+    check('name').notEmpty().withMessage('Completa este campo.'),
     check('status')
-        .notEmpty().withMessage('El campo estatus es obligatorio')
-        .isBoolean().withMessage('El campo status debe ser un valor booleano'),
+        .notEmpty().withMessage('Completa este campo.')
+        .isBoolean().withMessage('Completa utilizando un valor booleano.'),
 ];
 
 const validateStatusRole = [
     check('id')
-        .notEmpty().withMessage('El campo id es obligatorio.')
-        .isInt().withMessage('El campo id debe ser un numero entero.'),
+        .notEmpty().withMessage('Completa este campo.')
+        .isInt().withMessage('Completa utilizando solo numeros enteros.'),
     check('status')
-        .notEmpty().withMessage('El campo estatus es obligatorio')
-        .isBoolean().withMessage('El campo status debe ser un valor booleano'),
+        .notEmpty().withMessage('Completa este campo.')
+        .isBoolean().withMessage('Completa utilizando un valor booleano.'),
 ];
 
 export { validateCreateRole, validateViewRole, validateUpdateRole, validateStatusRole };

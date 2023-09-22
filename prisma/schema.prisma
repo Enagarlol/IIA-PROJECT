@@ -54,7 +54,7 @@ model Course {
   name String @db.VarChar(100)
   status Boolean @default(true)  
   spaces Int 
-  occupied_spaces Int
+  occupied_spaces Int @default(0)
   employees Employees @relation(fields: [id_employees], references: [id_employees])
   id_employees   Int
   course_schedule Course_schedule[]
@@ -66,10 +66,10 @@ model Course {
 
 model Course_schedule {
   id_schedule Int @id @unique @default(autoincrement())
-  time_entry DateTime @db.Time()
-  time_departure DateTime @db.Time()
+  time_entry String 
+  time_departure String
   date String
-  status String @db.VarChar(100)
+  status String @db.VarChar(100) @default("Agendada")
   classroom Classroom @relation(fields: [id_classroom], references: [id_classroom])
   id_classroom Int
   course Course @relation(fields: [id_course], references: [id_course])
@@ -89,7 +89,7 @@ model Classroom {
 
 model List_Course {
   id_list Int @id @default(autoincrement())
-  assistance Boolean
+  assistance String @default("Pendiente")
   students Students @relation(fields: [id_student], references: [id_student])
   id_student Int
   course Course @relation(fields: [id_course], references: [id_course])
