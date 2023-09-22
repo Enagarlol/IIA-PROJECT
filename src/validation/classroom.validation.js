@@ -18,6 +18,7 @@ const validateUpdateClassroom = [
     check('id')
         .notEmpty().withMessage('Completa este campo.')
         .isInt().withMessage('Completa utilizando solo numeros enteros.'),
+    check('id_classroom').isEmpty().withMessage('Este campo no debe ser enviado.'),
     check('name').notEmpty().withMessage('Completa este campo.'),
     check('capacity')
         .notEmpty().withMessage('Completa este campo.')
